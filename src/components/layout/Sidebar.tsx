@@ -3,6 +3,7 @@ import { Home, TrendingUp, TrendingDown, Target, CreditCard, LogOut, Palette, Su
 import { useAuth } from '../../hooks/useAuth'
 import { useBackground } from '../../hooks/useBackground'
 import { useTheme } from '../../hooks/useTheme'
+import { NotificationCenter } from '../notifications/NotificationCenter'
 import { Button } from '../ui/Button'
 
 interface SidebarProps {
@@ -45,7 +46,12 @@ export function Sidebar({ activeTab, onTabChange, isOpen, onToggle }: SidebarPro
         isOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0`}>
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">MoneyTracker</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">MoneyTracker</h1>
+          <div className="hidden lg:block">
+            <NotificationCenter />
+          </div>
+        </div>
       </div>
       
       <nav className="flex-1 p-4 space-y-2">
