@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Home, TrendingUp, TrendingDown, Target, CreditCard, LogOut, Palette, Sun, Moon } from 'lucide-react'
+import { Home, TrendingUp, TrendingDown, Target, CreditCard, LogOut, Palette, Sun, Moon, Menu, X } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useBackground } from '../../hooks/useBackground'
 import { useTheme } from '../../hooks/useTheme'
@@ -8,9 +8,11 @@ import { Button } from '../ui/Button'
 interface SidebarProps {
   activeTab: string
   onTabChange: (tab: string) => void
+  isOpen: boolean
+  onToggle: () => void
 }
 
-export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+export function Sidebar({ activeTab, onTabChange, isOpen, onToggle }: SidebarProps) {
   const { signOut } = useAuth()
   const { backgroundColor, changeBackground } = useBackground()
   const { isDark, toggleTheme } = useTheme()
@@ -29,7 +31,19 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   }
 
   return (
-    <div className="w-64 bg-white dark:bg-gray-800 shadow-lg h-screen flex flex-col fixed left-0 top-0 z-10">
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          onClick={onToggle}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`w-64 bg-white dark:bg-gray-800 shadow-lg h-screen flex flex-col fixed left-0 top-0 z-30 transform transition-transform duration-300 ease-in-out ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0`}>
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">MoneyTracker</h1>
       </div>
@@ -78,8 +92,8 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
             </Button>
           
           {showColorPicker && (
-            <div className="absolute bottom-full left-0 mb-2 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg w-64">
-              <div className="grid grid-cols-6 gap-2">
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg w-56 sm:w-64">
+              <div className="grid grid-cols-5 sm:grid-cols-6 gap-2">
                 {[
                   { name: 'slate', color: 'bg-slate-400' },
                   { name: 'gray', color: 'bg-gray-400' },
@@ -131,6 +145,17 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           <span>Keluar</span>
         </Button>
       </div>
+      
+      {/* Close button for mobile */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onToggle}
+        className="fixed top-4 right-4 z-40 lg:hidden p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg"
+      >
+        <X className="h-5 w-5" />
+      </Button>
     </div>
+    </>
   )
 }

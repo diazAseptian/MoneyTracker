@@ -107,11 +107,11 @@ export function TransactionList({ type, onEdit }: TransactionListProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
-          <CardTitle>
+        <div className="flex flex-col space-y-3 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
+          <CardTitle className="text-lg lg:text-xl">
             {type === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran'}
           </CardTitle>
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -144,33 +144,35 @@ export function TransactionList({ type, onEdit }: TransactionListProps) {
             </p>
           ) : (
             filteredTransactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-gray-900 dark:text-white">
-                      {transaction.keterangan}
-                    </h4>
-                    <p className={`font-semibold text-lg ${type === 'pemasukan' ? 'text-green-600' : 'text-red-600'}`}>
-                      {type === 'pemasukan' ? '+' : '-'}Rp {transaction.jumlah.toLocaleString('id-ID')}
-                    </p>
+              <div key={transaction.id} className="p-3 lg:p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+                  <div className="flex-1">
+                    <div className="flex flex-col space-y-1 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+                      <h4 className="font-medium text-gray-900 dark:text-white text-sm lg:text-base">
+                        {transaction.keterangan}
+                      </h4>
+                      <p className={`font-semibold text-base lg:text-lg ${type === 'pemasukan' ? 'text-green-600' : 'text-red-600'}`}>
+                        {type === 'pemasukan' ? '+' : '-'}Rp {transaction.jumlah.toLocaleString('id-ID')}
+                      </p>
+                    </div>
+                    <div className="flex flex-col space-y-1 lg:flex-row lg:items-center text-xs lg:text-sm text-gray-600 dark:text-gray-400 lg:space-y-0 lg:space-x-4 mt-1">
+                      <span>{format(new Date(transaction.tanggal), 'dd MMM yyyy', { locale: localeId })}</span>
+                      {type === 'pemasukan' && transaction.sumber && (
+                        <span className="lg:before:content-['•'] lg:before:mr-1">{transaction.sumber}</span>
+                      )}
+                      {type === 'pengeluaran' && transaction.kategori && (
+                        <span className="lg:before:content-['•'] lg:before:mr-1">{transaction.kategori.nama}</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center text-sm text-gray-600 dark:text-gray-400 space-y-1 sm:space-y-0 sm:space-x-4 mt-1">
-                    <span>{format(new Date(transaction.tanggal), 'dd MMMM yyyy', { locale: localeId })}</span>
-                    {type === 'pemasukan' && transaction.sumber && (
-                      <span>• {transaction.sumber}</span>
-                    )}
-                    {type === 'pengeluaran' && transaction.kategori && (
-                      <span>• {transaction.kategori.nama}</span>
-                    )}
+                  <div className="flex space-x-1 justify-end lg:ml-4">
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(transaction)}>
+                      <Edit2 className="h-3 w-3 lg:h-4 lg:w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(transaction.id)}>
+                      <Trash2 className="h-3 w-3 lg:h-4 lg:w-4 text-red-500" />
+                    </Button>
                   </div>
-                </div>
-                <div className="flex space-x-1 ml-4">
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(transaction)}>
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(transaction.id)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
                 </div>
               </div>
             ))

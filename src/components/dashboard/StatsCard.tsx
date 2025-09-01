@@ -30,13 +30,13 @@ export function StatsCard({ title, value, icon: Icon, color, trend }: StatsCardP
 
   return (
     <Card className="hover:shadow-lg transition-all duration-200 border-0 shadow-sm">
-      <CardContent className="p-6 flex items-center justify-center min-h-[120px]">
+      <CardContent className="p-4 lg:p-6 flex items-center justify-center min-h-[100px] lg:min-h-[120px]">
         <div className="flex items-center justify-between w-full">
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+            <p className="text-xs lg:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 lg:mb-2">
               {title}
             </p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+            <p className="text-lg lg:text-2xl font-bold text-gray-900 dark:text-white mb-1">
               {value}
             </p>
             {trend && (
@@ -45,8 +45,8 @@ export function StatsCard({ title, value, icon: Icon, color, trend }: StatsCardP
               </p>
             )}
           </div>
-          <div className={`p-3 rounded-xl ${iconColorClasses[color as keyof typeof iconColorClasses]}`}>
-            <Icon className="h-6 w-6" />
+          <div className={`p-2 lg:p-3 rounded-xl ${iconColorClasses[color as keyof typeof iconColorClasses]}`}>
+            <Icon className="h-5 w-5 lg:h-6 lg:w-6" />
           </div>
         </div>
       </CardContent>
