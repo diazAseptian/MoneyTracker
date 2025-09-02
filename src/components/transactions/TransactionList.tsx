@@ -160,8 +160,15 @@ export function TransactionList({ type, onEdit }: TransactionListProps) {
                       {type === 'pemasukan' && transaction.sumber && (
                         <span className="lg:before:content-['•'] lg:before:mr-1">{transaction.sumber}</span>
                       )}
-                      {type === 'pengeluaran' && transaction.kategori && (
-                        <span className="lg:before:content-['•'] lg:before:mr-1">{transaction.kategori.nama}</span>
+                      {type === 'pengeluaran' && (
+                        <>
+                          {transaction.kategori && (
+                            <span className="lg:before:content-['•'] lg:before:mr-1">{transaction.kategori.nama}</span>
+                          )}
+                          {transaction.sumber && (
+                            <span className="lg:before:content-['•'] lg:before:mr-1">{transaction.sumber}</span>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>

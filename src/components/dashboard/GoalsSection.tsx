@@ -16,13 +16,19 @@ interface Goal {
   deadline: string | null
 }
 
-export function GoalsSection() {
+interface GoalsSectionProps {
+  onSavingAdded?: () => void
+}
+
+export function GoalsSection({ onSavingAdded }: GoalsSectionProps = {}) {
   const [goals, setGoals] = useState<Goal[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
   const [isSavingModalOpen, setIsSavingModalOpen] = useState(false)
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null)
   const [savingAmount, setSavingAmount] = useState('')
+  const [savingSource, setSavingSource] = useState('Cash')
+  const [savingNote, setSavingNote] = useState('')
   const [formData, setFormData] = useState({
     nama: '',
     target: '',
@@ -125,6 +131,8 @@ export function GoalsSection() {
   const handleSaving = (goal: Goal) => {
     setSelectedGoal(goal)
     setSavingAmount('')
+    setSavingSource('Cash')
+    setSavingNote('')
     setIsSavingModalOpen(true)
   }
 
@@ -138,6 +146,24 @@ export function GoalsSection() {
       return
     }
 
+    // Insert saving record
+    const { error: savingError } = await supabase
+      .from('goal_savings')
+      .insert({
+        user_id: user?.id,
+        goal_id: selectedGoal.id,
+        jumlah: amount,
+        sumber: savingSource,
+        keterangan: savingNote,
+        tanggal: new Date().toISOString().split('T')[0]
+      })
+
+    if (savingError) {
+      toast.error('Gagal mencatat tabungan')
+      return
+    }
+
+    // Update goal progress
     const newProgress = selectedGoal.progress + amount
     const { error } = await supabase
       .from('goals')
@@ -145,12 +171,15 @@ export function GoalsSection() {
       .eq('id', selectedGoal.id)
 
     if (error) {
-      toast.error('Gagal menambah tabungan')
+      toast.error('Gagal mengupdate progress')
     } else {
-      toast.success(`Berhasil menabung Rp ${amount.toLocaleString('id-ID')}`)
+      toast.success(`Berhasil menabung Rp ${amount.toLocaleString('id-ID')} dari ${savingSource}`)
       fetchGoals()
+      onSavingAdded?.()
       setIsSavingModalOpen(false)
       setSavingAmount('')
+      setSavingSource('Cash')
+      setSavingNote('')
       setSelectedGoal(null)
     }
   }
@@ -284,6 +313,29 @@ export function GoalsSection() {
             placeholder="50000"
             required
           />
+          
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Sumber Dana
+            </label>
+            <select
+              value={savingSource}
+              onChange={(e) => setSavingSource(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              required
+            >
+              <option value="Cash">Cash</option>
+              <option value="Debit">Debit</option>
+            </select>
+          </div>
+          
+          <Input
+            label="Catatan (Opsional)"
+            value={savingNote}
+            onChange={(e) => setSavingNote(e.target.value)}
+            placeholder="Contoh: Bank BCA, Dompet, Celengan, dll"
+          />
+          
           <div className="flex space-x-3 pt-4">
             <Button type="submit" className="flex-1">
               Nabung
@@ -294,6 +346,8 @@ export function GoalsSection() {
               onClick={() => {
                 setIsSavingModalOpen(false)
                 setSavingAmount('')
+                setSavingSource('Cash')
+                setSavingNote('')
                 setSelectedGoal(null)
               }}
             >

@@ -27,6 +27,7 @@ CREATE TABLE pengeluaran (
   tanggal date NOT NULL,
   jumlah numeric(15,2) NOT NULL,
   kategori_id uuid,
+  sumber text DEFAULT 'Cash',
   keterangan text DEFAULT '',
   created_at timestamptz DEFAULT now()
 );

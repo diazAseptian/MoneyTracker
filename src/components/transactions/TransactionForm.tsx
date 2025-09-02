@@ -34,7 +34,7 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
     tanggal: new Date().toISOString().split('T')[0],
     jumlah: '',
     keterangan: '',
-    sumber: '',
+    sumber: 'Cash',
     kategori_id: ''
   })
   const { user } = useAuth()
@@ -51,7 +51,7 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
         tanggal: transaction.tanggal,
         jumlah: transaction.jumlah.toString(),
         keterangan: transaction.keterangan,
-        sumber: transaction.sumber || '',
+        sumber: transaction.sumber || 'Cash',
         kategori_id: transaction.kategori_id || ''
       })
     } else {
@@ -59,7 +59,7 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
         tanggal: new Date().toISOString().split('T')[0],
         jumlah: '',
         keterangan: '',
-        sumber: '',
+        sumber: 'Cash',
         kategori_id: ''
       })
     }
@@ -92,7 +92,7 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
       tanggal: formData.tanggal,
       jumlah: parseFloat(formData.jumlah),
       keterangan: formData.keterangan,
-      ...(type === 'pemasukan' ? { sumber: formData.kategori_id === 'cash' ? 'Cash' : 'Debit' } : { kategori_id: formData.kategori_id })
+      ...(type === 'pemasukan' ? { sumber: formData.kategori_id === 'cash' ? 'Cash' : 'Debit' } : { kategori_id: formData.kategori_id, sumber: formData.sumber })
     }
 
     if (transaction?.id) {
@@ -156,24 +156,41 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
             </select>
           </div>
         ) : (
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Kategori
-            </label>
-            <select
-              value={formData.kategori_id}
-              onChange={(e) => setFormData({ ...formData, kategori_id: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              required
-            >
-              <option value="">Pilih kategori</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.nama}
-                </option>
-              ))}
-            </select>
-          </div>
+          <>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Kategori
+              </label>
+              <select
+                value={formData.kategori_id}
+                onChange={(e) => setFormData({ ...formData, kategori_id: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                required
+              >
+                <option value="">Pilih kategori</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.nama}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Sumber Pembayaran
+              </label>
+              <select
+                value={formData.sumber}
+                onChange={(e) => setFormData({ ...formData, sumber: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                required
+              >
+                <option value="Cash">Cash</option>
+                <option value="Debit">Debit</option>
+              </select>
+            </div>
+          </>
         )}
         
         <Input
