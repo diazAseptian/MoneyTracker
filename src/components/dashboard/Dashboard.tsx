@@ -4,7 +4,9 @@ import { ExpenseChart } from './ExpenseChart'
 import { BalanceChart } from './BalanceChart'
 import { GoalsSummary } from './GoalsSummary'
 import { TransactionList } from '../transactions/TransactionList'
-import { TrendingUp, TrendingDown, Wallet, Target } from 'lucide-react'
+import { ExportModal } from '../export/ExportModal'
+import { Button } from '../ui/Button'
+import { TrendingUp, TrendingDown, Wallet, Target, Download } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -25,6 +27,7 @@ export function Dashboard() {
   const [hasGoals, setHasGoals] = useState(false)
   const [expenseChartData, setExpenseChartData] = useState<any[]>([])
   const [balanceChartData, setBalanceChartData] = useState<any[]>([])
+  const [showExportModal, setShowExportModal] = useState(false)
   const { user } = useAuth()
 
   useEffect(() => {
@@ -126,6 +129,18 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <Button
+          size="sm"
+          onClick={() => setShowExportModal(true)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Export Data
+        </Button>
+      </div>
+      
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
@@ -181,6 +196,11 @@ export function Dashboard() {
           </p>
         </div>
       )}
+      
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+      />
     </div>
   )
 }

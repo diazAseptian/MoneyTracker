@@ -28,6 +28,8 @@ export function useNotifications() {
     }
   }
 
+
+
   useEffect(() => {
     if (!user) return
 

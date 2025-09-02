@@ -12,7 +12,7 @@ interface ExpenseChartProps {
 
 export function ExpenseChart({ data }: ExpenseChartProps) {
   return (
-    <Card>
+    <Card className="expense-chart">
       <CardHeader>
         <CardTitle>Pengeluaran per Kategori</CardTitle>
       </CardHeader>

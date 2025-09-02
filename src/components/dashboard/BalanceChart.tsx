@@ -11,7 +11,7 @@ interface BalanceChartProps {
 
 export function BalanceChart({ data }: BalanceChartProps) {
   return (
-    <Card>
+    <Card className="balance-chart">
       <CardHeader>
         <CardTitle>Perkembangan Saldo</CardTitle>
       </CardHeader>
