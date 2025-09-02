@@ -32,6 +32,7 @@ export function TransactionList({ type, onEdit }: TransactionListProps) {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
+  const [bankFilter, setBankFilter] = useState('')
   const [categories, setCategories] = useState<any[]>([])
   const { user } = useAuth()
 
@@ -101,7 +102,9 @@ export function TransactionList({ type, onEdit }: TransactionListProps) {
       (type === 'pemasukan' && transaction.sumber?.toLowerCase() === categoryFilter.toLowerCase()) ||
       (type === 'pengeluaran' && transaction.kategori_id === categoryFilter)
     
-    return matchesSearch && matchesCategory
+    const matchesBank = !bankFilter || (transaction.keterangan && transaction.keterangan.toLowerCase().includes(bankFilter.toLowerCase()))
+    
+    return matchesSearch && matchesCategory && matchesBank
   })
 
   return (
@@ -133,6 +136,19 @@ export function TransactionList({ type, onEdit }: TransactionListProps) {
                 </option>
               ))}
             </select>
+            
+            {type === 'pemasukan' && (
+              <select
+                value={bankFilter}
+                onChange={(e) => setBankFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors dark:border-gray-600 dark:bg-gray-800 dark:text-white w-full sm:w-40"
+              >
+                <option value="">Semua Bank</option>
+                <option value="DANA">DANA</option>
+                <option value="BTN">BTN</option>
+                <option value="Seabank">Seabank</option>
+              </select>
+            )}
           </div>
         </div>
       </CardHeader>

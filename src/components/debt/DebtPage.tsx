@@ -23,6 +23,8 @@ interface Debt {
 
 export function DebtPage() {
   const [debts, setDebts] = useState<Debt[]>([])
+  const [filteredDebts, setFilteredDebts] = useState<Debt[]>([])
+  const [statusFilter, setStatusFilter] = useState('semua')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [editingDebt, setEditingDebt] = useState<Debt | null>(null)
@@ -43,6 +45,10 @@ export function DebtPage() {
     }
   }, [user])
 
+  useEffect(() => {
+    filterDebts()
+  }, [debts, statusFilter])
+
   const fetchDebts = async () => {
     const { data, error } = await supabase
       .from('hutang')
@@ -55,6 +61,31 @@ export function DebtPage() {
     } else {
       setDebts(data || [])
     }
+  }
+
+  const filterDebts = () => {
+    let filtered = debts
+    const today = new Date()
+
+    switch (statusFilter) {
+      case 'aktif':
+        filtered = debts.filter(debt => debt.status === 'aktif')
+        break
+      case 'lunas':
+        filtered = debts.filter(debt => debt.status === 'lunas')
+        break
+      case 'lewat_tempo':
+        filtered = debts.filter(debt => {
+          if (!debt.tanggal_jatuh_tempo || debt.status === 'lunas') return false
+          const dueDate = new Date(debt.tanggal_jatuh_tempo)
+          return dueDate < today
+        })
+        break
+      default:
+        filtered = debts
+    }
+
+    setFilteredDebts(filtered)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -175,42 +206,70 @@ export function DebtPage() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
           <CardTitle className="flex items-center space-x-2">
             <CreditCard className="h-5 w-5 text-red-600" />
             <span>Daftar Hutang</span>
           </CardTitle>
-          <Button size="sm" onClick={() => setIsModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah
-          </Button>
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors dark:border-gray-600 dark:bg-gray-800 dark:text-white w-full sm:w-40"
+            >
+              <option value="semua">Semua Status</option>
+              <option value="aktif">Aktif</option>
+              <option value="lunas">Lunas</option>
+              <option value="lewat_tempo">Lewat Tempo</option>
+            </select>
+            <Button size="sm" onClick={() => setIsModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {debts.length === 0 ? (
+          {filteredDebts.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-              Belum ada hutang tercatat
+              {debts.length === 0 ? 'Belum ada hutang tercatat' : 'Tidak ada hutang dengan status ini'}
             </p>
           ) : (
-            debts.map((debt) => {
+            filteredDebts.map((debt) => {
               const remaining = debt.jumlah_hutang - debt.jumlah_terbayar
               const percentage = (debt.jumlah_terbayar / debt.jumlah_hutang) * 100
+              const isOverdue = debt.tanggal_jatuh_tempo && new Date(debt.tanggal_jatuh_tempo) < new Date() && debt.status === 'aktif'
+              
               return (
-                <div key={debt.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <div key={debt.id} className={`p-4 border rounded-lg ${
+                  isOverdue 
+                    ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/20'
+                    : 'border-gray-200 dark:border-gray-700'
+                }`}>
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h4 className="font-semibold text-gray-900 dark:text-white">{debt.nama_kreditor}</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {debt.keterangan}
                       </p>
+                      {debt.tanggal_jatuh_tempo && (
+                        <p className={`text-xs mt-1 ${
+                          isOverdue ? 'text-red-600 font-medium' : 'text-gray-500'
+                        }`}>
+                          Jatuh tempo: {new Date(debt.tanggal_jatuh_tempo).toLocaleDateString('id-ID')}
+                          {isOverdue && ' (Lewat Tempo)'}
+                        </p>
+                      )}
                     </div>
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                       debt.status === 'lunas' 
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                        : isOverdue
+                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
                     }`}>
-                      {debt.status === 'lunas' ? 'Lunas' : 'Aktif'}
+                      {debt.status === 'lunas' ? 'Lunas' : isOverdue ? 'Lewat Tempo' : 'Aktif'}
                     </span>
                   </div>
                   

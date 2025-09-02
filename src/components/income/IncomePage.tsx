@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card'
 import { TransactionList } from '../transactions/TransactionList'
 import { TransactionForm } from '../transactions/TransactionForm'
-import { Plus, TrendingUp, Wallet, CreditCard } from 'lucide-react'
+import { Plus, TrendingUp, Wallet, CreditCard, Eye } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { Modal } from '../ui/Modal'
 import { supabase } from '../../lib/supabase'
@@ -13,6 +13,8 @@ export function IncomePage() {
   const [editingTransaction, setEditingTransaction] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [balances, setBalances] = useState({ cash: 0, debit: 0 })
+  const [bankBalances, setBankBalances] = useState({ DANA: 0, BTN: 0, Seabank: 0 })
+  const [showDebitDetail, setShowDebitDetail] = useState(false)
   const { user } = useAuth()
 
   const handleEdit = (transaction: any) => {
@@ -71,6 +73,35 @@ export function IncomePage() {
       cash: totalCashIncome - totalCashExpenses,
       debit: totalDebitIncome - totalDebitExpenses
     })
+
+    // Calculate bank-specific balances
+    const banks = ['DANA', 'BTN', 'Seabank']
+    const bankBalanceData: any = {}
+
+    for (const bank of banks) {
+      // Get income for this bank
+      const { data: bankIncome } = await supabase
+        .from('pemasukan')
+        .select('jumlah')
+        .eq('user_id', user?.id)
+        .eq('sumber', 'Debit')
+        .ilike('keterangan', `%${bank}%`)
+
+      // Get expenses for this bank
+      const { data: bankExpenses } = await supabase
+        .from('pengeluaran')
+        .select('jumlah')
+        .eq('user_id', user?.id)
+        .eq('sumber', 'Debit')
+        .ilike('keterangan', `%${bank}%`)
+
+      const totalBankIncome = bankIncome?.reduce((sum, item) => sum + item.jumlah, 0) || 0
+      const totalBankExpenses = bankExpenses?.reduce((sum, item) => sum + item.jumlah, 0) || 0
+      
+      bankBalanceData[bank] = totalBankIncome - totalBankExpenses
+    }
+
+    setBankBalances(bankBalanceData)
   }
 
   return (
@@ -92,16 +123,27 @@ export function IncomePage() {
         </Card>
         
         <Card>
-          <CardContent className="flex items-center space-x-4 min-h-[120px] p-6">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <CreditCard className="h-6 w-6 text-blue-600" />
+          <CardContent className="flex items-center justify-between min-h-[120px] p-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <CreditCard className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Saldo Debit</p>
+                <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Rp {balances.debit.toLocaleString('id-ID')}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Saldo Debit</p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                Rp {balances.debit.toLocaleString('id-ID')}
-              </p>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDebitDetail(true)}
+              className="text-blue-600 hover:text-blue-700"
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Detail
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -133,6 +175,62 @@ export function IncomePage() {
         />
       </Modal>
       </Card>
+
+      {/* Debit Detail Modal */}
+      <Modal
+        isOpen={showDebitDetail}
+        onClose={() => setShowDebitDetail(false)}
+        title="Detail Saldo Debit"
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3">
+            <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                  <CreditCard className="h-5 w-5 text-purple-600" />
+                </div>
+                <span className="font-medium text-gray-900 dark:text-white">DANA</span>
+              </div>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                Rp {bankBalances.DANA.toLocaleString('id-ID')}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                  <CreditCard className="h-5 w-5 text-orange-600" />
+                </div>
+                <span className="font-medium text-gray-900 dark:text-white">BTN</span>
+              </div>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                Rp {bankBalances.BTN.toLocaleString('id-ID')}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-teal-100 dark:bg-teal-900 rounded-lg">
+                  <CreditCard className="h-5 w-5 text-teal-600" />
+                </div>
+                <span className="font-medium text-gray-900 dark:text-white">Seabank</span>
+              </div>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                Rp {bankBalances.Seabank.toLocaleString('id-ID')}
+              </span>
+            </div>
+          </div>
+          
+          <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-gray-900 dark:text-white">Total Debit</span>
+              <span className="font-bold text-lg text-blue-600">
+                Rp {balances.debit.toLocaleString('id-ID')}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

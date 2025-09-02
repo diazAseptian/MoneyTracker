@@ -35,7 +35,8 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
     jumlah: '',
     keterangan: '',
     sumber: 'Cash',
-    kategori_id: ''
+    kategori_id: '',
+    bank: ''
   })
   const { user } = useAuth()
 
@@ -52,7 +53,8 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
         jumlah: transaction.jumlah.toString(),
         keterangan: transaction.keterangan,
         sumber: transaction.sumber || 'Cash',
-        kategori_id: transaction.kategori_id || ''
+        kategori_id: transaction.kategori_id || '',
+        bank: ''
       })
     } else {
       setFormData({
@@ -60,7 +62,8 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
         jumlah: '',
         keterangan: '',
         sumber: 'Cash',
-        kategori_id: ''
+        kategori_id: '',
+        bank: ''
       })
     }
   }, [transaction])
@@ -87,11 +90,17 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
       return
     }
 
+    // Prepare keterangan with bank info for debit transactions
+    let keterangan = formData.keterangan
+    if (type === 'pengeluaran' && formData.sumber === 'Debit' && formData.bank) {
+      keterangan = formData.bank + (formData.keterangan ? ` - ${formData.keterangan}` : '')
+    }
+
     const transactionData = {
       user_id: user?.id,
       tanggal: formData.tanggal,
       jumlah: parseFloat(formData.jumlah),
-      keterangan: formData.keterangan,
+      keterangan: keterangan,
       ...(type === 'pemasukan' ? { sumber: formData.kategori_id === 'cash' ? 'Cash' : 'Debit' } : { kategori_id: formData.kategori_id, sumber: formData.sumber })
     }
 
@@ -182,7 +191,9 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
               </label>
               <select
                 value={formData.sumber}
-                onChange={(e) => setFormData({ ...formData, sumber: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, sumber: e.target.value, bank: '' })
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 required
               >
@@ -190,6 +201,25 @@ export function TransactionForm({ type, transaction, onSuccess, onCancel }: Tran
                 <option value="Debit">Debit</option>
               </select>
             </div>
+            
+            {formData.sumber === 'Debit' && (
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Bank/E-Wallet
+                </label>
+                <select
+                  value={formData.bank}
+                  onChange={(e) => setFormData({ ...formData, bank: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                  required
+                >
+                  <option value="">Pilih Bank/E-Wallet</option>
+                  <option value="DANA">DANA</option>
+                  <option value="BTN">BTN</option>
+                  <option value="Seabank">Seabank</option>
+                </select>
+              </div>
+            )}
           </>
         )}
         
